@@ -14,12 +14,12 @@ const (
 
 var (
 	connections = make([]net.Conn, 100)
+	count       = 0
 )
 
 func main() {
 	log.Println("Starting")
 
-	// Create Socket
 	ll, err := net.Listen("tcp", ADDRESS)
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +40,9 @@ func main() {
 		if err != nil {
 			continue
 		}
-		log.Println("Received Connection from: ", conn.LocalAddr().String())
+		count++
+
+		log.Printf("Received Connection %d from: %s \n", count, conn.LocalAddr().String())
 		connections = append(connections, conn)
 
 	}
@@ -61,3 +63,17 @@ func work() {
 		time.Sleep(DELAY)
 	}
 }
+
+// func PrintMemUsage() {
+// var m runtime.MemStats
+// runtime.ReadMemStats(&m)
+// // For info on each, see: https://golang.org/pkg/runtime/#MemStats
+
+// log.Printf("\tTotalAlloc = %v KiB", bToKb(m.TotalAlloc))
+// log.Printf("\tSys = %v KiB", bToKb(m.Sys))
+// log.Printf("\tNumGC = %v\n", m.NumGC)
+// }
+
+// func bToKb(b uint64) uint64 {
+// return b / 1024
+// }
