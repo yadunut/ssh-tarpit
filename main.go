@@ -55,7 +55,8 @@ func work() {
 				continue
 			}
 			if _, err := conn.Write([]byte{'a', '\n'}); err != nil {
-				log.Println("Closing Connection")
+				log.Printf("Closing Connection %d from: %s\n", count, conn.RemoteAddr().String())
+				count--
 				conn.Close()
 				connections[i] = nil
 			}
