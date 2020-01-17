@@ -1,3 +1,3 @@
-module github.com/yadunut/learn/ssh-tarpit
+module github.com/yadunut/ssh-tarpit
 
 go 1.13
