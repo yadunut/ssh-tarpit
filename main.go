@@ -42,7 +42,7 @@ func main() {
 		}
 		count++
 
-		log.Printf("Received Connection %d from: %s \n", count, conn.LocalAddr().String())
+		log.Printf("Received Connection %d from: %s \n", count, conn.RemoteAddr().String())
 		connections = append(connections, conn)
 
 	}
