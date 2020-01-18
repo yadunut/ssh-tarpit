@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	connections = make([]net.Conn, 100)
+	connections = make([]net.Conn, 0, 100)
 	count       = 0
 )
 
@@ -50,31 +50,21 @@ func main() {
 
 func work() {
 	for {
-		for i, conn := range connections {
+		for i := 0; i < len(connections); i++ {
+			conn := connections[i]
 			if conn == nil {
 				continue
 			}
+
 			if _, err := conn.Write([]byte{'a', '\n'}); err != nil {
 				log.Printf("Closing Connection %d from: %s\n", count, conn.RemoteAddr().String())
 				count--
 				conn.Close()
-				connections[i] = nil
+				connections = append(connections[:i], connections[i+1:]...)
 			}
 		}
 		time.Sleep(DELAY)
+
 	}
+	// Using range to iterate through the array cannot be used cause connections is modified during the loop execution. Range copies the connections array and hits a NPE
 }
-
-// func PrintMemUsage() {
-// var m runtime.MemStats
-// runtime.ReadMemStats(&m)
-// // For info on each, see: https://golang.org/pkg/runtime/#MemStats
-
-// log.Printf("\tTotalAlloc = %v KiB", bToKb(m.TotalAlloc))
-// log.Printf("\tSys = %v KiB", bToKb(m.Sys))
-// log.Printf("\tNumGC = %v\n", m.NumGC)
-// }
-
-// func bToKb(b uint64) uint64 {
-// return b / 1024
-// }
