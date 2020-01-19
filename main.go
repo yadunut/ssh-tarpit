@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"time"
@@ -18,6 +18,7 @@ var (
 )
 
 func main() {
+	log.SetFormatter(&log.JSONFormatter{})
 	log.Println("Starting")
 
 	ll, err := net.Listen("tcp", ADDRESS)
@@ -42,7 +43,11 @@ func main() {
 		}
 		count++
 
-		log.Printf("Received Connection %d from: %s \n", count, conn.RemoteAddr().String())
+		log.WithFields(log.Fields{
+			"connection": conn.RemoteAddr(),
+			"count":      count,
+		}).Println("received connection")
+
 		connections = append(connections, conn)
 
 	}
@@ -57,7 +62,10 @@ func work() {
 			}
 
 			if _, err := conn.Write([]byte{'a', '\n'}); err != nil {
-				log.Printf("Closing Connection %d from: %s\n", count, conn.RemoteAddr().String())
+				log.WithFields(log.Fields{
+					"connection": conn.RemoteAddr(),
+					"count":      count,
+				}).Println("closing connection")
 				count--
 				conn.Close()
 				connections = append(connections[:i], connections[i+1:]...)
