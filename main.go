@@ -1,25 +1,32 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
+// ADDRESS to run server on
 const (
 	ADDRESS = ":2222"
 	DELAY   = time.Second * 3
 )
 
 var (
-	connections = make([]net.Conn, 0, 100)
+	connections = make([]Conn, 0, 100)
 	count       = 0
 )
 
+// Conn defines a connection
+type Conn struct {
+	conn  net.Conn
+	begin time.Time
+}
+
 func main() {
 	log.SetFormatter(&log.JSONFormatter{})
-	log.Println("Starting")
 
 	ll, err := net.Listen("tcp", ADDRESS)
 	if err != nil {
@@ -44,12 +51,11 @@ func main() {
 		count++
 
 		log.WithFields(log.Fields{
-			"connection": conn.RemoteAddr(),
+			"IP":         conn.RemoteAddr().String(),
 			"count":      count,
-		}).Println("received connection")
-
-		connections = append(connections, conn)
-
+			"connection": "received",
+		}).Println()
+		connections = append(connections, Conn{conn, time.Now()})
 	}
 }
 
@@ -57,17 +63,21 @@ func work() {
 	for {
 		for i := 0; i < len(connections); i++ {
 			conn := connections[i]
-			if conn == nil {
+			if conn.conn == nil {
+				connections = append(connections[:i], connections[i+1:]...)
 				continue
 			}
 
-			if _, err := conn.Write([]byte{'a', '\n'}); err != nil {
+			if _, err := conn.conn.Write([]byte{'a'}); err != nil {
+
 				log.WithFields(log.Fields{
-					"connection": conn.RemoteAddr(),
+					"IP":         conn.conn.RemoteAddr().String(),
 					"count":      count,
-				}).Println("closing connection")
+					"connection": "closed",
+					"time-in":    time.Since(conn.begin).Seconds(),
+				}).Println()
 				count--
-				conn.Close()
+				conn.conn.Close()
 				connections = append(connections[:i], connections[i+1:]...)
 			}
 		}
